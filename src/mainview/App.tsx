@@ -1,5 +1,3 @@
-// main app component - composes all the pieces together
-
 import { useState, useCallback } from "react";
 import { AppShell } from "@/mainview/components/layout/app-shell";
 import { Card } from "@/mainview/components/ui/card";
@@ -61,10 +59,14 @@ export default function App() {
     }
   );
 
-  const handleAuth = useCallback(async (mode: "auto" | "manual", manualToken?: string) => {
+  const handleAuth = useCallback(async (
+    mode: "auto" | "manual", 
+    manualToken?: string,
+    saveToCache?: boolean
+  ) => {
     setError(null);
     setCurrentView("scan");
-    await authenticate(mode, manualToken);
+    await authenticate(mode, manualToken, saveToCache);
   }, [authenticate]);
 
   const handleToggleChannel = useCallback((id: string) => {

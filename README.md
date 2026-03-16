@@ -53,12 +53,28 @@ bun run dev
 
 ## Getting Your Discord Token
 
+### Option 1: Token Helper (Recommended)
+
+use the included python script to automatically extract your token from discord or your browser:
+
+```bash
+cd scripts
+pip install -r requirements.txt
+python token-helper.py --save
+```
+
+this saves your token to `~/.deleo_cached_token` so deleo can use it automatically on the next launch.
+
+### Option 2: Manual Extraction
+
 1. open discord in your browser
 2. open devtools (f12)
 3. go to network tab
 4. send any message
 5. click the request and find the `authorization` header
 6. copy that token
+
+when entering your token manually in deleo, you can choose to save it for faster login next time.
 
 ## Usage
 
@@ -87,12 +103,15 @@ src/
 │   ├── utils/     # utility functions
 │   │   └── avatar.ts
 │   └── components/# ui components
-└── lib/           # shared utilities
-    └── core/      # discord api client
-        ├── discord-client.ts
-        ├── auth-manager.ts
-        ├── message-searcher.ts
-        └── message-deleter.ts
+├── lib/           # shared utilities
+│   └── core/      # discord api client
+│       ├── discord-client.ts
+│       ├── auth-manager.ts
+│       ├── message-searcher.ts
+│       └── message-deleter.ts
+└── scripts/       # helper scripts
+    ├── token-helper.py
+    └── requirements.txt
 ```
 
 ## Building

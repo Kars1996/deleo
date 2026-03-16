@@ -1,5 +1,7 @@
+// auth hook - handles token validation and user session
+
 import { useState, useCallback } from "react";
-import { loadCachedToken, validateToken, getChannels } from "@/mainview/electrobun";
+import { loadCachedToken, validateToken, saveToken, getChannels } from "@/mainview/electrobun";
 import { DiscordUser, ChannelInfo } from "@/types";
 import { getAvatarColor, getInitials } from "@/mainview/utils/avatar";
 import { Channel } from "@/mainview/components/features/channel-item";
@@ -31,7 +33,11 @@ export function useDiscordAuth(
     }));
   };
 
-  const authenticate = useCallback(async (mode: AuthMode, manualToken?: string) => {
+  const authenticate = useCallback(async (
+    mode: AuthMode, 
+    manualToken?: string,
+    saveToCache?: boolean
+  ) => {
     try {
       if (mode === "auto") {
         setScanText({ title: "Looking for cached token…", subtitle: "Checking ~/.deleo_cached_token" });
@@ -54,6 +60,7 @@ export function useDiscordAuth(
         setUser(result.user);
         setIsConnected(true);
         
+        // load channels after successful auth
         setScanText({ title: "Loading channels…", subtitle: "Fetching your conversations" });
         const channelsResult = await getChannels();
         if (channelsResult.success && channelsResult.channels) {
@@ -75,6 +82,12 @@ export function useDiscordAuth(
         setUser(result.user);
         setIsConnected(true);
         
+        // save to cache if requested
+        if (saveToCache) {
+          await saveToken(manualToken);
+        }
+        
+        // load channels after successful auth
         setScanText({ title: "Loading channels…", subtitle: "Fetching your conversations" });
         const channelsResult = await getChannels();
         if (channelsResult.success && channelsResult.channels) {

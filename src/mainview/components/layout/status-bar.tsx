@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 interface StatusBarProps {
   status?: string;
   user?: string | null;
@@ -9,12 +11,28 @@ export function StatusBar({
   user = null,
   isConnected = false,
 }: StatusBarProps) {
-  const currentTime = new Date().toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const [currentTime, setCurrentTime] = useState(() =>
+    new Date().toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
+  );
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      );
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <footer
@@ -38,7 +56,6 @@ export function StatusBar({
         <div className="w-px h-2.5" style={{ background: "var(--border)" }} />
         <span style={{ color: "var(--dim)" }}>{status}</span>
       </div>
-
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-[5px]">
           <div
