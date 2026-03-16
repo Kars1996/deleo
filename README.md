@@ -1,5 +1,7 @@
 # Deleo
 
+![img](https://files.catbox.moe/vtt8bp.png)
+
 A desktop GUI for deleting Discord messages in bulk. Built with [electrobun](https://blackboard.sh/electrobun).
 
 > ⚠️ **Warning**: Using self-bots violates Discord's Terms of Service. Use at your own risk.
