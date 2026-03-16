@@ -1,0 +1,24 @@
+{
+    "css.customData": [".vscode/tailwind.json"],
+    "workbench.editor.customLabels.patterns": {
+        "**/app/**/page.tsx": "${dirname}/page.tsx"
+    },
+
+    "editor.codeActionsOnSave": [
+        "source.addMissingImports",
+        "source.fixAll.eslint"
+    ],
+    "search.exclude": {
+        "package-lock.json": true
+    },
+    "typescript.preferences.preferTypeOnlyAutoImports": true,
+
+    // ! Only toggle if a repo is private
+    "vscord.app.privacyMode.enable": false,
+    "vscord.ignore.workspacesText": "In a secret workspace 🤫",
+
+    // ! Change to current workspace name
+    "vscord.ignore.workspaces": [
+        "workspace"
+    ]
+}
