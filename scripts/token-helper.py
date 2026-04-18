@@ -319,7 +319,7 @@ examples:
             print(f"[{i}] {format_username(account)}")
             print(f"    id: {user_id}")
             print(f"    source: {account.get('source', 'unknown')}")
-            print(f"    token: {account['token'][:20]}...{account['token'][-10:]}")
+            print(f"    token: {account['token']}")
             print()
     
     # save to cache

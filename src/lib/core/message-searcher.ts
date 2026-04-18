@@ -1,4 +1,8 @@
-import { DiscordClient, DiscordMessage, DiscordChannel } from "./discord-client";
+import {
+  DiscordClient,
+  DiscordMessage,
+  DiscordChannel,
+} from "./discord-client";
 import { Result } from "@sapphire/result";
 
 export interface MessageSearchResult {
@@ -16,45 +20,56 @@ export class MessageSearcher {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async searchChannelMessages(
     channelId: string,
     authorId: string,
-    onProgress?: (found: number) => void
+    onProgress?: (found: number, total: number) => void,
   ): Promise<Result<DiscordMessage[], Error>> {
     const messages: DiscordMessage[] = [];
     let offset = 0;
     const limit = 25;
 
     while (true) {
-      const result = await this.client.searchMessages(channelId, authorId, offset);
-
+      const result = await this.client.searchMessages(
+        channelId,
+        authorId,
+        offset,
+      );
       if (result.isErr()) {
-        return Result.err(result.unwrapErr());
+        const err = result.unwrapErr();
+        if (err.message === "RATELIMIT") {
+          await this.sleep(3000); // will retry l8er
+          continue;
+        }
+        return Result.err(err);
       }
 
       const data = result.unwrap();
+      const before = messages.length;
 
-      // flat message groups
       for (const group of data.messages) {
         for (const message of group) {
-          if (message.author.id === authorId) {
+          // dedupe by id in case of overlapping pages
+          if (
+            message.author.id === authorId &&
+            !messages.find((m) => m.id === message.id)
+          ) {
             messages.push(message);
           }
         }
       }
 
-      onProgress?.(messages.length);
+      onProgress?.(messages.length, data.total_results);
 
       // verify none left
-      if (data.messages.length === 0 || messages.length >= data.total_results) {
-        break;
-      }
+      if (data.messages.length === 0 || messages.length === before) break;
+      if (messages.length >= data.total_results) break;
 
       offset += limit;
-      await this.sleep(250);
+      await this.sleep(500);
     }
 
     return Result.ok(messages);

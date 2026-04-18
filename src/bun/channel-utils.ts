@@ -1,4 +1,4 @@
-import { DiscordChannel } from "../lib/core/discord-client";
+import { DiscordChannel, getDiscordAvatarUrl, getGroupIconUrl } from "../lib/core/discord-client";
 
 export type ChannelType = "dm" | "group" | "server";
 
@@ -53,10 +53,19 @@ export interface ChannelInfo {
   msgs: number;
   avatarColor: string;
   avatarText: string;
+  avatarUrl: string | null; 
 }
 
 export function convertChannel(channel: DiscordChannel): ChannelInfo {
   const label = getChannelLabel(channel);
+  
+  let avatarUrl: string | null = null;
+  if (channel.icon) {
+    avatarUrl = getGroupIconUrl(channel.id, channel.icon);
+  } else if (channel.recipients?.length === 1 && channel.recipients[0].avatar) {
+    avatarUrl = getDiscordAvatarUrl(channel.recipients[0].id, channel.recipients[0].avatar);
+  }
+
   return {
     id: channel.id,
     type: getChannelType(channel),
@@ -64,6 +73,7 @@ export function convertChannel(channel: DiscordChannel): ChannelInfo {
     sub: getChannelSub(channel),
     msgs: 0,
     avatarColor: getAvatarColor(label),
-    avatarText: getInitials(label)
+    avatarText: getInitials(label),
+    avatarUrl,
   };
 }

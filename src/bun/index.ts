@@ -37,6 +37,7 @@ export const rpc = BrowserView.defineRPC<WindowRPCType>({
       minimizeWindow: () => mainWindow.minimize(),
     },
   },
+  maxRequestTime: 10_000 // 10 s
 });
 
 const mainWindow = createMainWindow(url, rpc);

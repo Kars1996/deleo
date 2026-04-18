@@ -25,7 +25,7 @@ export class MessageDeleter {
   private stopped = false;
   private deleteDelay: number;
 
-  constructor(token: string, deleteDelay = 1000) {
+  constructor(token: string, deleteDelay = 350) { 
     const devMode = process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0";
     this.client = new DiscordClient(token, devMode);
     this.deleteDelay = deleteDelay;
@@ -50,11 +50,10 @@ export class MessageDeleter {
   ): Promise<{ deleted: number; failed: number }> {
     let deleted = 0;
     let failed = 0;
+    let ratelimitBackoff = 5000;
 
     for (const message of messages) {
-      if (this.stopped) {
-        break;
-      }
+      if (this.stopped) break;
 
       const result = await this.client.deleteMessage(channelId, message.id);
 
@@ -63,41 +62,29 @@ export class MessageDeleter {
         failed++;
 
         if (error.message.includes("RATELIMIT")) {
-          onEvent({
-            type: "message_failed",
-            channelId,
-            messageId: message.id,
-            messageContent: message.content,
-            error: "ratelimit",
-            deleted,
-            failed,
-          });
+          onEvent({ type: "message_failed", channelId, messageId: message.id,
+            messageContent: message.content, error: "ratelimit", deleted, failed });
 
-          // longer wait  when rate limit
-          await this.sleep(5000);
+          await this.sleep(ratelimitBackoff);
+          ratelimitBackoff = Math.min(ratelimitBackoff * 1.5, 30000);
+
+          const retry = await this.client.deleteMessage(channelId, message.id);
+          if (retry.isOk()) {
+            deleted++;
+            failed--;
+            ratelimitBackoff = 5000; 
+            onEvent({ type: "message_deleted", channelId, messageId: message.id,
+              messageContent: message.content, deleted, failed });
+          }
         } else {
-          onEvent({
-            type: "message_failed",
-            channelId,
-            messageId: message.id,
-            messageContent: message.content,
-            error: "unknown",
-            deleted,
-            failed,
-          });
+          onEvent({ type: "message_failed", channelId, messageId: message.id,
+            messageContent: message.content, error: error.message, deleted, failed });
         }
       } else {
         deleted++;
-        onEvent({
-          type: "message_deleted",
-          channelId,
-          messageId: message.id,
-          messageContent: message.content,
-          deleted,
-          failed,
-        });
-
-        // ratelimit protection
+        ratelimitBackoff = 5000; // reset on success
+        onEvent({ type: "message_deleted", channelId, messageId: message.id,
+          messageContent: message.content, deleted, failed });
         await this.sleep(this.deleteDelay);
       }
     }
